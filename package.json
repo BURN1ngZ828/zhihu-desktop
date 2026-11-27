@@ -1,0 +1,46 @@
+{
+  "name": "zhihu-desktop",
+  "version": "1.1.0",
+  "private": false,
+  "description": "Clean, lightweight, open-source Zhihu desktop client built with Electron, React, and TypeScript.",
+  "author": "BURN1ngZ828",
+  "license": "MIT",
+  "homepage": "https://github.com/BURN1ngZ828/zhihu-desktop#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BURN1ngZ828/zhihu-desktop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BURN1ngZ828/zhihu-desktop/issues"
+  },
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build:electron": "node scripts/build-electron.mjs",
+    "build:web": "vite build",
+    "verify:build": "node scripts/verify-build.mjs",
+    "build": "npm run typecheck && npm run build:electron && npm run build:web && npm run verify:build",
+    "start": "npm run build && electron .",
+    "dist:win": "npm run build && electron-builder --win --x64 --config electron-builder.yml"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/dompurify": "^3.2.0",
+    "@types/katex": "^0.16.7",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "dompurify": "^3.2.5",
+    "electron": "^35.2.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.2",
+    "katex": "^0.16.22",
+    "lucide-react": "^0.503.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2"
+  }
+}

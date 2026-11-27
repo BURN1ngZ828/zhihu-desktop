@@ -1,0 +1,33 @@
+appId: com.burn1ngz.zhihu-desktop
+productName: Zhihu Desktop
+copyright: Copyright © 2026 BURN1ngZ828
+asar: true
+compression: maximum
+directories:
+  output: release
+files:
+  - package.json
+  - dist/**/*
+  - dist-electron/**/*
+  - assets/**/*
+  - "!node_modules/**/*"
+afterPack: scripts/after-pack.mjs
+win:
+  icon: assets/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 知乎 Desktop
+  artifactName: Zhihu-Desktop-${version}-Setup.exe
+publish:
+  - provider: github
+    owner: BURN1ngZ828
+    repo: zhihu-desktop
+    releaseType: release

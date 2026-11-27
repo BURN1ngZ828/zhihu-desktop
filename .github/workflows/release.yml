@@ -1,0 +1,74 @@
+name: Build & Release Windows
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and package Windows installer
+        run: npm run dist:win -- --publish never
+
+      - name: Generate SHA256SUMS.txt
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path release -File | Where-Object {
+            $_.Name -like 'Zhihu-Desktop-*-Setup.exe' -or $_.Name -eq 'latest.yml'
+          } | Sort-Object Name
+          $lines = foreach ($f in $files) {
+            $hash = (Get-FileHash -Path $f.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($f.Name)"
+          }
+          [System.IO.File]::WriteAllLines("$PWD/release/SHA256SUMS.txt", $lines, (New-Object System.Text.UTF8Encoding($false)))
+          Get-Content release/SHA256SUMS.txt
+
+      - name: Upload release assets if missing
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $assets = @(
+            (Get-Item "release/Zhihu-Desktop-*-Setup.exe").FullName,
+            (Get-Item "release/Zhihu-Desktop-*-Setup.exe.blockmap").FullName,
+            "$PWD/release/latest.yml",
+            "$PWD/release/SHA256SUMS.txt"
+          )
+          $exists = $false
+          try {
+            $json = gh release view $tag --json assets 2>$null
+            if ($LASTEXITCODE -eq 0 -and $json) {
+              $exists = $true
+              $rel = $json | ConvertFrom-Json
+              $hasExe = @($rel.assets | Where-Object { $_.name -like 'Zhihu-Desktop-*-Setup.exe' }).Count -gt 0
+              if ($hasExe) {
+                Write-Host "Release $tag already has installer assets; skipping upload."
+                exit 0
+              }
+            }
+          } catch {}
+          if ($exists) {
+            gh release upload $tag @assets --clobber
+          } else {
+            gh release create $tag @assets --title "$tag" --generate-notes
+          }
